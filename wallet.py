@@ -70,11 +70,41 @@ class Wallet():
             new_transaction.send()
         except Exception as err:
             print(err, '; transaction was canceled')
-try:
-    me = Wallet()
-    me.set_random_key()
-    me.create_transaction()
 
+    def check_balance(self):
+        pass
+    # check balance def
+    
+    usage = {   '-set-random' : set_random_key,
+            '-set-input' : set_custom_key,
+            '-set-file' : set_key_from_file,
+            '-balance' : check_balance,
+            '-send' : create_transaction}
+
+def help():
+    print('Usage : wallet.py\n',
+            ' -exit          :press to terminate program\n',
+            ' --help         :press to get the usage\n',
+            ' -set-random    :set a random private key to this account\n',
+            ' -set-input     :set a private key from input\n',
+            ' -set-file      :set a private key from file\n',
+            ' -balance       :check a balance of this account\n',
+            ' -send          :send coints to a user\n')
+
+
+
+me = Wallet()
+line = input('Hey, user! Please, write a command (use --help to see usage)\n')
+
+try:
+    while not line == '-exit':
+        if line == '--help':
+            help()
+        elif line in usage.keys():
+            me.usage[line]()
+        else:
+            print('Please, write a valid instraction\n')
+        line = input('')
 
 except Exception as err:
     print('Terminated by ', err)
