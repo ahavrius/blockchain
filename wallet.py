@@ -9,7 +9,6 @@ class Wallet():
     """
     _public_key
     _private_key
-    _name
     """
 
     def __init__(self):
@@ -67,8 +66,8 @@ class Wallet():
             self.validate_keys()
             new_transaction = Transaction(
                                 SEC1Encoder.encode_public_key(self._public_key),
-                                get_recipient(),
-                                get_amount())
+                                get_address(),
+                                get_number(1, 10000, 'amount'))
             new_transaction.show()
             self.sign_transaction(new_transaction)
             new_transaction.send()

@@ -5,48 +5,53 @@ from fastecdsa import keys, curve, ecdsa
 from fastecdsa.encoding.sec1 import SEC1Encoder #decode_public_key, encode_public_key
 import json
 import os
+import ast
 
 QUEUE_FOLDER = 'Pool/'
-
+NULL_BYTE = b'\x00'
 NOT_SIGNED = 0
 
-def get_amount():
-    
+def get_number(min, max, string):
     try:
-        n = int(input('How much to send? Please write positive number : '))
-        if (n <= 0):
-            raise Exception('Error : amount should be a positive number')
-        return n
+        number = int(input('Please write {0} between {1} and {2} : '.format(string, min, max)))
     except ValueError:
-        raise Exception('Error : amount should be a positive number')
+        raise Exception('Error : {} should be int'.format(string))
+    if  number < min or number > max:
+        raise Exception('Error : {0} should be between {1} and {2} '.format(string, min, max))
+    return number
 
-def get_recipient():
-    address = input('Write address of recipient : ')
-    return address
+def get_address():
+    address = input('Write an address : ')
+    byte_address = ast.literal_eval(address)
+    if not isinstance(byte_address, bytes):
+        raise Exception('Error : input the wrong address, please use bytecode')
+    return byte_address
 
 def add_to_queue(transaction):
     fname  = QUEUE_FOLDER + transaction._timestamp.strftime("%H.%M.%S") + '.json'
     with open(fname, 'a') as f:
         json.dump(transaction.__dict__(), f)
-    get_from_queue().show()
+
+def json_to_transaction(json_data):
+    transaction = Transaction(  ast.literal_eval(json_data['from']),
+                                ast.literal_eval(json_data['to']),
+                                int(json_data['amount']))
+    #transaction._timestamp = datetime.strptime(json_data['time'])
+    transaction._timestamp = json_data['time']
+    transaction._signature = eval(json_data['signature'])
+    if not isinstance(transaction._from, bytes) or not isinstance(transaction._to, bytes):
+        raise Exception('Error : the wrong address, please use bytecode')
+    return transaction
 
 def get_from_queue():
     entries = os.listdir(QUEUE_FOLDER)
     if len(entries) == 0:
-        raise Exception('nothing to mine')
-    #sort ?
+        raise Exception('Error : nothing to mine')
     fname = QUEUE_FOLDER + entries[0]
     with open(fname) as json_file:  
         data = json.load(json_file)
-    transaction = Transaction(data['from'],
-                                data['to'],
-                                data['amount'])
-    transaction._timestamp = data['time']
-    transaction._signature = data['signature']
-    #print(SEC1Encoder.decode_public_key(transaction._from, curve=curve.P256))
-    #print(eval(transaction._signature))
+    transaction = json_to_transaction(data)
     os.remove(fname)
-
     return transaction
 
 class Transaction():
@@ -74,28 +79,34 @@ class Transaction():
         return tran
 
     def calculate_hash(self):
-        to_hash = "".join([
-                            str(self._from),
-                            str(self._to),
-                            str(self._amount),
-                            str(self._timestamp)])
+        to_hash = str(self)
         sha = hashlib.sha256()
         sha.update(to_hash.encode('utf-8'))
         return sha.hexdigest()
 
+    def __str__(self):
+        return ";".join([
+                            str(self._from),
+                            str(self._to),
+                            str(self._amount),
+                            str(self._timestamp)])
+                            #signature ? #use __dict__ to str 
     def show(self):
-        print('Generated transaction : ',
-                '\n From the member: ', self._from,
-                '\n To the member: ', self._to,
-                '\n With amount : ', self._amount,
-                '\n at : ', self._timestamp)
+        print("".join([
+                'Generated transaction : ',
+                '\n From the member: ', str(self._from),
+                '\n To the member: ',   str(self._to),
+                '\n With amount : ',    str(self._amount),
+                '\n at : ',             str(self._timestamp)]))
 
     def is_signed(self):
         return self._signature != NOT_SIGNED
 
     def check_signature(self):
+        if self._from == NULL_BYTE:
+            return True
         if not self.is_signed():
-            return 0
+            return False
         to_sign = self.calculate_hash()  
         return ecdsa.verify(self._signature, to_sign, SEC1Encoder.decode_public_key(self._from, curve=curve.P256))
 
