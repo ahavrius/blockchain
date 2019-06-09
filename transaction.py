@@ -90,7 +90,6 @@ class Transaction():
                             str(self._to),
                             str(self._amount),
                             str(self._timestamp)])
-                            #signature ? #use __dict__ to str 
     def show(self):
         print("".join([
                 'Generated transaction : ',
