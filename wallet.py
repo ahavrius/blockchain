@@ -2,6 +2,7 @@ import os
 from fastecdsa import keys, curve, ecdsa
 from transaction import *
 from fastecdsa.keys import export_key, import_key
+from blockchain import *
 
 DEFAULT_KEY = 0
 
@@ -75,7 +76,10 @@ class Wallet():
             print(err, '; transaction was canceled')
 
     def check_balance(self):
-        pass
+        client = Blockchain()
+        address = SEC1Encoder.encode_public_key(self._public_key)
+        balance = client.inner_balance_by_address(address)
+        print('Your balance is ', balance)
     
     usage = {
             '-set-random' : set_random_key,
@@ -97,7 +101,7 @@ def help():
             ' -save-keys     :save your private and public keys to the protected file')
 
 me = Wallet()
-line = input('Hey, user! Please, write a command (use --help to see usage)\n')
+line = input('Hey, user of the wallet! Please, write a command (use --help to see usage)\n')
 
 try:
     while not line == '-exit':

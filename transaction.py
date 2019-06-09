@@ -92,7 +92,7 @@ class Transaction():
                             str(self._timestamp)])
     def show(self):
         print("".join([
-                'Generated transaction : ',
+                'Current transaction : ',
                 '\n From the member: ', str(self._from),
                 '\n To the member: ',   str(self._to),
                 '\n With amount : ',    str(self._amount),
