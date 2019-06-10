@@ -8,20 +8,22 @@ def help():
             ' -last-hash        :get the hash of the last block\n',
             ' -info-id          :display info of the block by id\n',
             ' -info-hash        :display info of the block by hash\n',
-            ' -balance-address  :get the balance by adress\n',
-            ' -history-address  :display history of all transaction of any address\n',
+            ' -balance          :get the balance by adress\n',
+            ' -history          :display history of all transaction of any address\n',
             ' -mine             :mine transaction from the queue\n',
             ' -valid            :check if the chain is valid')
 
 me = Blockchain()
-line = input('Hey, user of the client! Please, write a command (use --help to see usage)\n')
+line = input('Hey, user of Client Interface! Please, write a command (use --help to see usage)\n')
 
 try:
     while not line == '-exit':
         if line == '--help':
             help()
         elif line in Blockchain.usage.keys():
-            print(Blockchain.usage[line](me))
+            answer = Blockchain.usage[line](me)
+            if answer is not None:
+                print(answer)
         else:
             print('Please, write a valid instraction')
         line = input('')

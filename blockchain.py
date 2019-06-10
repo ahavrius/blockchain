@@ -1,8 +1,9 @@
 import datetime
 import hashlib
 from transaction import *
+from termcolor import colored
 
-difficulty_hash = 0x0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+difficulty_hash = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 blockchain_file = 'block.chain'
 
 
@@ -20,7 +21,6 @@ def json_to_block(json_data):
     return block
 
 class Block:
-
     def __init__(self, data, prev_hash):
         self._data = data
         self._prev_hash = prev_hash
@@ -81,15 +81,21 @@ class Blockchain:
         return len(self._chain)
 
     def block_by_id(self):
-        id = get_number(0, self.chain_height() - 1, 'index')
-        return str(self._chain[id])
+        try:
+            id = get_number(0, self.chain_height() - 1, 'index')
+            return str(self._chain[id])
+        except Exception as err:
+            print(err, ', request was denied')
 
     def block_by_hash(self):
-        hash = input('Write the address : ')
-        for block in self._chain:
-            if hash == block._hash:
-                return str(block)
-        return 'block was not found'
+        try:
+            hash = input('Write the address : ')
+            for block in self._chain:
+                if hash == block._hash:
+                    return str(block)
+            return 'block was not found'
+        except Exception as err:
+            print(err, ', request was denied')
 
     def last_block_hash(self):
         return self._chain[-1]._hash
@@ -104,18 +110,23 @@ class Blockchain:
         return balance
 
     def balance_by_address(self):
-        address = get_address()
-        return self.inner_balance_by_address(address)
-    
+        try:
+            address = get_address()
+            return self.inner_balance_by_address(address)
+        except Exception as err:
+            print(err, ', request was denied')
+
     def history_by_address(self):
-        address = get_address()
-        print('History :')
-        for block in self._chain:
-            if type(block._data) is Transaction and \
-                address in (block._data._from, block._data._to):
-                block._data.show()
-        return ''
-        
+        try:
+            address = get_address()
+            print(colored('---History :', 'blue'))
+            for block in self._chain:
+                if type(block._data) is Transaction and \
+                    address in (block._data._from, block._data._to):
+                    block._data.show()
+        except Exception as err:
+            print(err, ', request was denied')
+
     def mine_block(self):
         try:
             address = get_address()
@@ -155,7 +166,7 @@ class Blockchain:
             '-last-hash' : last_block_hash,
             '-info-id' : block_by_id,
             '-info-hash' : block_by_hash,
-            '-balance-address' : balance_by_address,
-            '-history-address' : history_by_address,
+            '-balance' : balance_by_address,
+            '-history' : history_by_address,
             '-mine' : mine_block,
             '-valid' : is_chain_valid}

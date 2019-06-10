@@ -1,11 +1,11 @@
 import datetime
 import hashlib
 from fastecdsa import keys, curve, ecdsa
-#import client
-from fastecdsa.encoding.sec1 import SEC1Encoder #decode_public_key, encode_public_key
+from fastecdsa.encoding.sec1 import SEC1Encoder
 import json
 import os
 import ast
+from termcolor import colored
 
 QUEUE_FOLDER = 'Pool/'
 NULL_BYTE = b'\x00'
@@ -28,6 +28,8 @@ def get_address():
     return byte_address
 
 def add_to_queue(transaction):
+    if not os.path.exists(QUEUE_FOLDER):
+        os.mkdir(QUEUE_FOLDER)
     fname  = QUEUE_FOLDER + transaction._timestamp.strftime("%H.%M.%S") + '.json'
     with open(fname, 'a') as f:
         json.dump(transaction.__dict__(), f)
@@ -36,7 +38,6 @@ def json_to_transaction(json_data):
     transaction = Transaction(  ast.literal_eval(json_data['from']),
                                 ast.literal_eval(json_data['to']),
                                 int(json_data['amount']))
-    #transaction._timestamp = datetime.strptime(json_data['time'])
     transaction._timestamp = json_data['time']
     transaction._signature = eval(json_data['signature'])
     if not isinstance(transaction._from, bytes) or not isinstance(transaction._to, bytes):
@@ -44,9 +45,9 @@ def json_to_transaction(json_data):
     return transaction
 
 def get_from_queue():
-    entries = os.listdir(QUEUE_FOLDER)
-    if len(entries) == 0:
+    if not os.path.exists(QUEUE_FOLDER) or len(os.listdir(QUEUE_FOLDER)) == 0:
         raise Exception('Error : nothing to mine')
+    entries = os.listdir(QUEUE_FOLDER)
     fname = QUEUE_FOLDER + entries[0]
     with open(fname) as json_file:  
         data = json.load(json_file)
@@ -91,12 +92,12 @@ class Transaction():
                             str(self._amount),
                             str(self._timestamp)])
     def show(self):
+        print(colored('*******Transaction*******', 'green'))
         print("".join([
-                'Current transaction : ',
-                '\n From the member: ', str(self._from),
-                '\n To the member: ',   str(self._to),
-                '\n With amount : ',    str(self._amount),
-                '\n at : ',             str(self._timestamp)]))
+                ' From the member: ', str(self._from), '\n'
+                ' To the member: ',   str(self._to), '\n'
+                ' With amount : ',    str(self._amount), '\n'
+                ' at : ',             str(self._timestamp)]))
 
     def is_signed(self):
         return self._signature != NOT_SIGNED
@@ -112,6 +113,8 @@ class Transaction():
     def send(self):
         if not self.check_signature():
             raise Exception('Error : you need to sign transaction before sending')
+        if self._from == self._to:
+            raise Exception('Error : you can\'t send money yourself')
         add_to_queue(self)
         print('Transaction was successfully added to the queue')
 

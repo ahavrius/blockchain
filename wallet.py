@@ -76,18 +76,35 @@ class Wallet():
             print(err, '; transaction was canceled')
 
     def check_balance(self):
-        client = Blockchain()
-        address = SEC1Encoder.encode_public_key(self._public_key)
-        balance = client.inner_balance_by_address(address)
-        print('Your balance is ', balance)
-    
+        try:
+            self.validate_keys()
+            client = Blockchain()
+            address = SEC1Encoder.encode_public_key(self._public_key)
+            balance = client.inner_balance_by_address(address)
+            print('Your balance is ', balance)
+        except Exception as err:
+            print(err, ', request denied')
+
+    def print_private_key(self):
+        print('Your private key is ',
+                self._private_key if self._private_key != DEFAULT_KEY else 'default key')
+
+    def print_public_address(self):
+        try:
+            self.validate_keys()
+            print('Your public addeess is ', SEC1Encoder.encode_public_key(self._public_key))
+        except Exception as err:
+            print(err, ', request denied')
+
     usage = {
             '-set-random' : set_random_key,
             '-set-input' : set_custom_key,
             '-set-file' : set_key_from_file,
             '-balance' : check_balance,
             '-send' : create_transaction,
-            '-save-keys' : save_keys_to_file}
+            '-save-keys' : save_keys_to_file,
+            '-private-key' : print_private_key,
+            '-address' : print_public_address}
 
 def help():
     print('Usage : wallet.py\n',
@@ -98,10 +115,12 @@ def help():
             ' -set-file      :set private and public keys from the protected file\n',
             ' -balance       :check a balance of this account\n',
             ' -send          :send coints to a user\n',
-            ' -save-keys     :save your private and public keys to the protected file')
+            ' -save-keys     :save your private and public keys to the protected file\n',
+            ' -private-key   :show your private key\n',
+            ' -address       :show your public address (based on public key)')
 
 me = Wallet()
-line = input('Hey, user of the wallet! Please, write a command (use --help to see usage)\n')
+line = input('Hey, user of Wallet Interface! Please, write a command (use --help to see usage)\n')
 
 try:
     while not line == '-exit':
