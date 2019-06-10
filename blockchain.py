@@ -85,17 +85,17 @@ class Blockchain:
             id = get_number(0, self.chain_height() - 1, 'index')
             return str(self._chain[id])
         except Exception as err:
-            print(err, ', request was denied')
+            print(err, ', request denied')
 
     def block_by_hash(self):
         try:
-            hash = input('Write the address : ')
+            hash = input('Write the hash : ')
             for block in self._chain:
                 if hash == block._hash:
                     return str(block)
             return 'block was not found'
         except Exception as err:
-            print(err, ', request was denied')
+            print(err, ', request denied')
 
     def last_block_hash(self):
         return self._chain[-1]._hash
@@ -114,7 +114,7 @@ class Blockchain:
             address = get_address()
             return self.inner_balance_by_address(address)
         except Exception as err:
-            print(err, ', request was denied')
+            print(err, ', request denied')
 
     def history_by_address(self):
         try:
@@ -125,7 +125,7 @@ class Blockchain:
                     address in (block._data._from, block._data._to):
                     block._data.show()
         except Exception as err:
-            print(err, ', request was denied')
+            print(err, ', request denied')
 
     def mine_block(self):
         try:
@@ -140,10 +140,9 @@ class Blockchain:
             add_to_queue(revard_transaction)
             return('Successfully mined')
         except Exception as err:
-            print(err, ', mining was canceled')
+            print(err, ', mining canceled')
 
     def get_blockchain_from_file(self):
-        #if doesn't exist
         if not os.path.isfile(blockchain_file):
             return False
         with open(blockchain_file, 'r') as f:
@@ -157,7 +156,7 @@ class Blockchain:
         for block in self._chain:
             if block._hash != block.calculate_hash() or \
                 block._prev_hash != prev_hash:
-                return False #excrption
+                return False
             prev_hash = block._hash
         return True
 

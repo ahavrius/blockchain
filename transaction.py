@@ -13,7 +13,7 @@ NOT_SIGNED = 0
 
 def get_number(min, max, string):
     try:
-        number = int(input('Please write {0} between {1} and {2} : '.format(string, min, max)))
+        number = int(input('Please write the {0} between {1} and {2} : '.format(string, min, max)))
     except ValueError:
         raise Exception('Error : {} should be int'.format(string))
     if  number < min or number > max:
